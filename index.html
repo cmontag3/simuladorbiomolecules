@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Biomolècules - Joc Interactiu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #38bdf8;
+            --accent-purple: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #22c55e;
+            --error: #f43f5e;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 25px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+
+        .fire-icon { color: #f97316; }
+
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            transition: width 0.4s ease;
+        }
+
+        .card-stage {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: center;
+        }
+
+        @media (max-width: 700px) {
+            .card-stage {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .image-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 260px;
+            max-height: 320px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .image-box img {
+            max-width: 100%;
+            max-height: 270px;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .image-box img:hover {
+            transform: scale(1.03);
+        }
+
+        .question-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            line-height: 1.3;
+        }
+
+        .step-indicator {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #38bdf8;
+            font-weight: 700;
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .opt-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            line-height: 1.3;
+        }
+
+        .opt-btn:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+            transform: translateX(4px);
+        }
+
+        .opt-btn.correct {
+            background: rgba(34, 197, 94, 0.2) !important;
+            border-color: var(--success) !important;
+            color: #4ade80 !important;
+            cursor: default;
+        }
+
+        .opt-btn.incorrect {
+            background: rgba(244, 63, 94, 0.2) !important;
+            border-color: var(--error) !important;
+            color: #fb7185 !important;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Formulari d'escriptura de nom */
+        .text-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .text-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .text-input.error {
+            border-color: var(--error);
+            animation: shake 0.3s ease;
+        }
+
+        .text-input.success {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+        }
+
+        .check-btn {
+            background: linear-gradient(135deg, #38bdf8, #3b82f6);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .check-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .feedback-box {
+            margin-top: 10px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: none;
+            animation: fadeIn 0.3s ease;
+            font-weight: 600;
+        }
+
+        .feedback-box.correct {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid var(--success);
+            color: #86efac;
+        }
+
+        .feedback-box.incorrect {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--warning);
+            color: #fcd34d;
+        }
+
+        .next-btn {
+            margin-top: 15px;
+            background: linear-gradient(135deg, #38bdf8, #3b82f6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            display: none;
+        }
+
+        .next-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .end-screen {
+            text-align: center;
+            padding: 20px 10px;
+            display: none;
+        }
+
+        .end-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #34d399, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-summary {
+            font-size: 1.15rem;
+            margin: 15px 0 25px 0;
+            color: var(--text-muted);
+        }
+
+        .molecules-review-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .review-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+        }
+
+        .review-card strong {
+            color: #38bdf8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .molecules-review-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .molecules-review-grid::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <h1>🔬 BioMol Quiz (13 Biomolècules)</h1>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-badge"><span class="fire-icon">🔥</span> <span id="streak-val">0</span></div>
+            <div class="stat-badge">⭐ <span id="score-val">0</span></div>
+            <div class="stat-badge">🧪 <span id="card-counter">1/13</span></div>
+        </div>
+    </header>
+
+    <div class="game-container">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+
+        <div id="quiz-stage" class="card-stage">
+            <div class="image-box">
+                <img id="mol-img" src="" alt="Biomolècula">
+            </div>
+
+            <div class="question-area">
+                <div class="step-indicator" id="step-tag">Pas 1 de 3</div>
+                <div class="question-title" id="question-text">Quin tipus de biomolècula és?</div>
+
+                <div class="options-grid" id="options-container">
+                    <!-- Es carregarà dinàmicament segons el pas -->
+                </div>
+
+                <div class="feedback-box" id="feedback"></div>
+                <button class="next-btn" id="next-btn" onclick="handleNext()">Següent ➔</button>
+            </div>
+        </div>
+
+        <div id="end-screen" class="end-screen">
+            <h2>🎉 Enhorabona! Has completat la ronda!</h2>
+            <p class="score-summary">Has aconseguit <strong id="final-score" style="color:#38bdf8;">0</strong> punts de <strong id="max-score">0</strong> possibles!</p>
+            
+            <h3 style="text-align: left; margin-bottom: 12px; font-size: 1rem; color: #e2e8f0;">📋 Repàs de les 13 Biomolècules:</h3>
+            <div class="molecules-review-grid" id="review-grid"></div>
+
+            <button class="restart-btn" onclick="restartGame()">Tornar a jugar 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        const biomolecules = [
+            {
+                id: "glucosa",
+                name: "Glucosa",
+                image: "glucosa.png",
+                type: "Glúcid",
+                function: "Principal font d'energia immediata per a les cèl·lules",
+                functionDistractors: [
+                    "Reserva d'energia a llarg termini en el teixit adipós",
+                    "Estructura de la doble capa fosfolipídica de la membrana",
+                    "Emmagatzematge d'informació genètica hereditària"
+                ]
+            },
+            {
+                id: "fosfolipid",
+                name: "Fosfolípid",
+                image: "fosfolípid.png",
+                type: "Lípid",
+                function: "Component estructural principal de les membranes cel·lulars (bicapa lipídica)",
+                functionDistractors: [
+                    "Reserva d'energia ràpida vegetal",
+                    "Catalitzador biològic de reaccions metabòliques",
+                    "Transport d'oxigen en els glòbuls vermells"
+                ]
+            },
+            {
+                id: "ac_gras",
+                name: "Àcid gras",
+                image: "ac gras.png",
+                type: "Lípid",
+                function: "Component de triglicèrids i fosfolípids, i font d'energia",
+                functionDistractors: [
+                    "Monòmer per a la síntesi de proteïnes",
+                    "Dissacàrid de transport en la sang",
+                    "Component de l'esquelet de l'ADN"
+                ]
+            },
+            {
+                id: "aminoacid",
+                name: "Aminoàcid",
+                image: "aminoacid.png",
+                type: "Proteïna",
+                function: "Monòmer o unitat estructural bàsica per a la síntesi de proteïnes",
+                functionDistractors: [
+                    "Reserva de glúcids en el fetge",
+                    "Pigment fotosintètic en les plantes",
+                    "Aïllant tèrmic de la pell"
+                ]
+            },
+            {
+                id: "sacarosa",
+                name: "Sacarosa",
+                image: "sacarosa.png",
+                type: "Glúcid",
+                function: "Transport de sucres/energia en plantes (sucre de taula)",
+                functionDistractors: [
+                    "Component de les membranes cel·lulars",
+                    "Reserva de greix intramuscular",
+                    "Unitat monomèrica de l'ARN"
+                ]
+            },
+            {
+                id: "mido",
+                name: "Midó",
+                image: "mido.png",
+                type: "Glúcid",
+                function: "Reserva d'energia principal en les cèl·lules vegetals",
+                functionDistractors: [
+                    "Estructura rígida de les ungles i cabells",
+                    "Enzim digestiu de la saliva",
+                    "Reserva d'energia animal en els músculs"
+                ]
+            },
+            {
+                id: "triglicerid",
+                name: "Triglicèrid",
+                image: "Triglicerid.png",
+                type: "Lípid",
+                function: "Reserva d'energia a llarg termini i aïllament tèrmic",
+                functionDistractors: [
+                    "Estructura de la paret cel·lular vegetal",
+                    "Síntesi directa d'enzims digestius",
+                    "Emmagatzematge de la informació genètica"
+                ]
+            },
+            {
+                id: "cel·lulosa",
+                name: "Cel·lulosa",
+                image: "cel·lulosa.png",
+                type: "Glúcid",
+                function: "Funció estructural en la paret cel·lular vegetal",
+                functionDistractors: [
+                    "Reserva de glucosa en el fetge animal",
+                    "Transport d'oxigen en el torrent sanguini",
+                    "Bicapa de les membranes cel·lulars"
+                ]
+            },
+            {
+                id: "desoxiribosa",
+                name: "Desoxiribosa",
+                image: "desoxiribosa.png",
+                type: "Glúcid",
+                function: "Component estructural dels nucleòtids de l'ADN",
+                functionDistractors: [
+                    "Font principal d'energia muscular ràpida",
+                    "Reserva d'oli vegetal en les llavors",
+                    "Proteïna de transport de la membrana"
+                ]
+            },
+            {
+                id: "fructosa",
+                name: "Fructosa",
+                image: "Fructosa.png",
+                type: "Glúcid",
+                function: "Font d'energia immediata (present en fruites i mel)",
+                functionDistractors: [
+                    "Lípid aïllant dels nervis",
+                    "Catalitzador de la fotosíntesi",
+                    "Component de la paret cel·lular"
+                ]
+            },
+            {
+                id: "ribosa",
+                name: "Ribosa",
+                image: "Ribosa.png",
+                type: "Glúcid",
+                function: "Component estructural dels nucleòtids de l'ARN i de l'ATP",
+                functionDistractors: [
+                    "Reserva de greix corporal",
+                    "Enzim degradador de sucres",
+                    "Monòmer de les cadenes polipeptídiques"
+                ]
+            },
+            {
+                id: "galactosa",
+                name: "Galactosa",
+                image: "Galactosa.png",
+                type: "Glúcid",
+                function: "Font d'energia (sucre constituent de la lactosa)",
+                functionDistractors: [
+                    "Estructura del citoesquelet cel·lular",
+                    "Àcid nucleic de transcripció",
+                    "Hormona reguladora del metabolisme"
+                ]
+            },
+            {
+                id: "lactosa",
+                name: "Lactosa",
+                image: "Lactosa.png",
+                type: "Glúcid",
+                function: "Font d'energia aportada en la llet dels mamífers",
+                functionDistractors: [
+                    "Lípid de la membrana plasmàtica",
+                    "Enzim digestiu de l'estómac",
+                    "Material genètic dels virus"
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+        let currentStep = 1; // 1: Tipus, 2: Nom escrit, 3: Funció
+        let score = 0;
+        let streak = 0;
+
+        let step1FirstTry = true;
+        let step2FirstTry = true;
+        let step3FirstTry = true;
+
+        const allTypes = ["Glúcid", "Lípid", "Proteïna", "Àcid nucleic"];
+
+        // Funció per normalitzar text: elimina accents, majúscules, espais extres i variacions de la ela geminada
+        function normalizeText(str) {
+            if (!str) return "";
+            return str
+                .toLowerCase()
+                .trim()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // Elimina accents/diacrítics
+                .replace(/[·\-\.]/g, "")       // Elimina punts mitjans de ela geminada o guions
+                .replace(/\s+/g, " ");          // Espais únics
+        }
+
+        function initGame() {
+            // Ordre aleatori de biomolècules en iniciar
+            biomolecules.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            score = 0;
+            streak = 0;
+            updateStats();
+            document.getElementById('quiz-stage').style.display = 'grid';
+            document.getElementById('end-screen').style.display = 'none';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            currentStep = 1;
+            step1FirstTry = true;
+            step2FirstTry = true;
+            step3FirstTry = true;
+
+            const item = biomolecules[currentIndex];
+            
+            const imgEl = document.getElementById('mol-img');
+            imgEl.src = item.image;
+            imgEl.onerror = function() {
+                if (this.src.indexOf('Lactosa_2.png') === -1 && item.id === 'lactosa') {
+                    this.src = 'Lactosa_2.png';
+                } else {
+                    this.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='200' viewBox='0 0 250 200'><rect width='250' height='200' fill='%231e293b'/><text x='50%' y='50%' fill='%2338bdf8' font-size='18' text-anchor='middle' font-family='sans-serif' font-weight='bold'>Biomolècula</text><text x='50%' y='70%' fill='%2394a3b8' font-size='12' text-anchor='middle' font-family='sans-serif'>(" + item.image + ")</text></svg>";
+                }
+            };
+
+            document.getElementById('card-counter').textContent = `${currentIndex + 1}/${biomolecules.length}`;
+            document.getElementById('progress').style.width = `${((currentIndex) / biomolecules.length) * 100}%`;
+
+            renderStep1();
+        }
+
+        // --- PAS 1: TIPUS DE BIOMOLÈCULA ---
+        function renderStep1() {
+            currentStep = 1;
+            document.getElementById('step-tag').textContent = "Pas 1 de 3";
+            document.getElementById('question-text').textContent = "Quin tipus de biomolècula és?";
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+
+            allTypes.forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.textContent = type;
+                btn.onclick = () => checkStep1(type, btn);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkStep1(type, selectedBtn) {
+            const item = biomolecules[currentIndex];
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.style.display = 'block';
+
+            if (type === item.type) {
+                selectedBtn.classList.add('correct');
+                feedbackEl.className = 'feedback-box correct';
+                feedbackEl.innerHTML = `✅ ¡Molt bé! És un/a <strong>${item.type}</strong>.`;
+                
+                if (step1FirstTry) score += 10;
+                updateStats();
+
+                document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+                setTimeout(() => {
+                    renderStep2();
+                }, 1000);
+            } else {
+                step1FirstTry = false;
+                streak = 0;
+                updateStats();
+
+                selectedBtn.classList.add('incorrect');
+                selectedBtn.disabled = true;
+
+                feedbackEl.className = 'feedback-box incorrect';
+                feedbackEl.innerHTML = `⚠️ Resposta incorrecta. <strong>Torna-ho a provar!</strong>`;
+            }
+        }
+
+        // --- PAS 2: ESCTRIURE EL NOM DE LA BIOMOLÈCULA ---
+        function renderStep2() {
+            currentStep = 2;
+            document.getElementById('step-tag').textContent = "Pas 2 de 3";
+            document.getElementById('question-text').textContent = "Escriu el nom exacte d'aquesta biomolècula:";
+            document.getElementById('feedback').style.display = 'none';
+
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = `
+                <div class="text-input-group">
+                    <input type="text" id="name-input" class="text-input" placeholder="Escriu el nom aquí..." autocomplete="off" spellcheck="false">
+                    <button class="check-btn" onclick="checkStep2()">Comprovar nom ↵</button>
+                </div>
+            `;
+
+            const inputEl = document.getElementById('name-input');
+            inputEl.focus();
+
+            // Es pot enviar el nom prement Enter
+            inputEl.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkStep2();
+                }
+            });
+        }
+
+        function checkStep2() {
+            const item = biomolecules[currentIndex];
+            const inputEl = document.getElementById('name-input');
+            const feedbackEl = document.getElementById('feedback');
+            
+            if (!inputEl) return;
+            
+            const userVal = normalizeText(inputEl.value);
+            const targetVal = normalizeText(item.name);
+
+            feedbackEl.style.display = 'block';
+
+            if (userVal === targetVal) {
+                inputEl.classList.remove('error');
+                inputEl.classList.add('success');
+                inputEl.disabled = true;
+
+                feedbackEl.className = 'feedback-box correct';
+                feedbackEl.innerHTML = `✅ ¡Excel·lent! És: <strong>${item.name}</strong>.`;
+
+                if (step2FirstTry) score += 10;
+                updateStats();
+
+                setTimeout(() => {
+                    renderStep3();
+                }, 1100);
+            } else {
+                step2FirstTry = false;
+                streak = 0;
+                updateStats();
+
+                inputEl.classList.remove('error');
+                // Trigger shake animation
+                void inputEl.offsetWidth; 
+                inputEl.classList.add('error');
+
+                feedbackEl.className = 'feedback-box incorrect';
+                feedbackEl.innerHTML = `⚠️ Resposta incorrecta. <strong>Torna-ho a provar!</strong>`;
+
+                inputEl.focus();
+                inputEl.select();
+            }
+        }
+
+        // --- PAS 3: SELECCIONAR LA FUNCIÓ PRINCIPAL ---
+        function renderStep3() {
+            currentStep = 3;
+            const item = biomolecules[currentIndex];
+
+            document.getElementById('step-tag').textContent = "Pas 3 de 3";
+            document.getElementById('question-text').textContent = `Quina és la funció principal de: ${item.name}?`;
+            document.getElementById('feedback').style.display = 'none';
+
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+
+            const options = [item.function, ...item.functionDistractors];
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkStep3(opt, btn);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkStep3(selectedOpt, selectedBtn) {
+            const item = biomolecules[currentIndex];
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.style.display = 'block';
+
+            if (selectedOpt === item.function) {
+                selectedBtn.classList.add('correct');
+                feedbackEl.className = 'feedback-box correct';
+                feedbackEl.innerHTML = `🌟 ¡Fantàstic! Funció identificada correctament.`;
+
+                if (step3FirstTry) {
+                    score += 15;
+                    streak++;
+                }
+                updateStats();
+
+                document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+                document.getElementById('next-btn').style.display = 'block';
+            } else {
+                step3FirstTry = false;
+                streak = 0;
+                updateStats();
+
+                selectedBtn.classList.add('incorrect');
+                selectedBtn.disabled = true;
+
+                feedbackEl.className = 'feedback-box incorrect';
+                feedbackEl.innerHTML = `⚠️ Resposta incorrecta. <strong>Torna-ho a provar!</strong>`;
+            }
+        }
+
+        function handleNext() {
+            currentIndex++;
+            if (currentIndex < biomolecules.length) {
+                loadQuestion();
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById('quiz-stage').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'block';
+            document.getElementById('progress').style.width = '100%';
+            
+            const maxScore = biomolecules.length * 35;
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('max-score').textContent = maxScore;
+
+            // Omplir la graella final de repàs de totes les 13 biomolècules
+            const reviewGrid = document.getElementById('review-grid');
+            reviewGrid.innerHTML = '';
+            biomolecules.forEach(b => {
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                card.innerHTML = `
+                    <strong>${b.name} (${b.type})</strong>
+                    <span>${b.function}</span>
+                `;
+                reviewGrid.appendChild(card);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('score-val').textContent = score;
+            document.getElementById('streak-val').textContent = streak;
+        }
+
+        function restartGame() {
+            initGame();
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
